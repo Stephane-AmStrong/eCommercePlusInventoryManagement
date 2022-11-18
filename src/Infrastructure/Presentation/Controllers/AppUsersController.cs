@@ -1,61 +1,87 @@
 ﻿using Contracts;
 using DataTransfertObjects;
 using Microsoft.AspNetCore.Mvc;
+using Presentation.Helpers;
 using Services.Abstractions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static Presentation.Helpers.RazorViewHelper;
 
 namespace Presentation.Controllers
 {
-    [ApiController]
-    [Route("api/appUsers")]
-    public class AppUsersController : ControllerBase
+    public class AppUsersController : Controller
     {
         private readonly IServiceManager _serviceManager;
 
         public AppUsersController(IServiceManager serviceManager) => _serviceManager = serviceManager;
 
-        [HttpGet]
-        public async Task<IActionResult> GetAppUsers(CancellationToken cancellationToken)
-        {
-            var appUsers = await _serviceManager.AppUserService.GetAllAsync(cancellationToken);
 
-            return Ok(appUsers);
+        private async Task<IEnumerable<AppUsersDto>> ListAppUser(CancellationToken cancellationToken)
+        {
+            return await _serviceManager.AppUserService.GetAllAsync(cancellationToken);
         }
 
-        [HttpGet("{id:guid}")]
-        public async Task<IActionResult> GetAppUserById(string id, CancellationToken cancellationToken)
+        public async Task<IActionResult> Index(CancellationToken cancellationToken)
         {
-            var appUserDto = await _serviceManager.AppUserService.GetByIdAsync(id, cancellationToken);
-
-            return Ok(appUserDto);
+            return View(await ListAppUser(cancellationToken));
         }
+
+        public async Task<IActionResult> Details(string id, CancellationToken cancellationToken)
+        {
+            var appUserCategoryDto = await _serviceManager.AppUserService.GetDetailsByIdAsync(id, cancellationToken);
+            return View(appUserCategoryDto);
+        }
+
+
+        [NoDirectAccess]
+        public async Task<IActionResult> Form(string id, CancellationToken cancellationToken)
+        {
+            if (id is null)
+            {
+                return PartialView(new AppUserDto());
+            }
+
+            var appUserCategoryDto = await _serviceManager.AppUserService.GetByIdAsync(id, cancellationToken);
+            return PartialView(appUserCategoryDto);
+        }
+
 
         [HttpPost]
-        public async Task<IActionResult> CreateAppUser([FromBody] AppUserWriteDto appUserWriteDto)
+        //[ValidateAntiForgeryToken]
+        public async Task<IActionResult> Save(string id, AppUserDto appUserCategoryRequest, CancellationToken cancellationToken)
         {
-            var appUserDto = await _serviceManager.AppUserService.CreateAsync(appUserWriteDto);
+            //intervenor.AppUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!ModelState.IsValid) return Json(new { isValid = false, html = RazorViewHelper.RenderRazorViewToString(this, "Form", appUserCategoryRequest) });
 
-            return CreatedAtAction(nameof(GetAppUserById), new { id = appUserDto.Id }, appUserDto);
+            if (string.IsNullOrEmpty(id))
+            {
+                await _serviceManager.AppUserService.CreateAsync(appUserCategoryRequest, cancellationToken);
+            }
+            else
+            {
+                await _serviceManager.AppUserService.UpdateAsync(id, appUserCategoryRequest, cancellationToken);
+            }
+
+            return Json(new { isValid = true, html = RazorViewHelper.RenderRazorViewToString(this, "_ViewAll", await ListAppUser(cancellationToken)) });
         }
 
-        [HttpPut("{id:guid}")]
-        public async Task<IActionResult> UpdateAppUser(string id, [FromBody] AppUserWriteDto appUserWriteDto, CancellationToken cancellationToken)
-        {
-            await _serviceManager.AppUserService.UpdateAsync(id, appUserWriteDto, cancellationToken);
 
-            return NoContent();
+        public async Task<IActionResult> RequestDeleteConfirmation(string id, CancellationToken cancellationToken)
+        {
+            if (id is null) return BadRequest();
+            var appUserCategoryDto = await _serviceManager.AppUserService.GetByIdAsync(id, cancellationToken);
+            return PartialView(appUserCategoryDto);
         }
 
-        [HttpDelete("{id:guid}")]
-        public async Task<IActionResult> DeleteAppUser(string id, CancellationToken cancellationToken)
+
+        [HttpPost]
+        public async Task<IActionResult> Delete(string id, CancellationToken cancellationToken)
         {
             await _serviceManager.AppUserService.DeleteAsync(id, cancellationToken);
-
-            return NoContent();
+            return Json(new { isValid = true, html = RazorViewHelper.RenderRazorViewToString(this, "_ViewAll", await ListAppUser(cancellationToken)) });
         }
     }
 }

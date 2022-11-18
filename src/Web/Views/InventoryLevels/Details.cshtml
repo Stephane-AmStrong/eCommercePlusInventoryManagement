@@ -1,0 +1,82 @@
+﻿@model InventoryLevelDto
+
+@{
+    ViewData["Title"] = "Inventory Level";
+}
+
+@section TitleAndBreadCrumbs {
+<div class="col-sm-6">
+    <h1 class="m-0">@ViewData["Title"]</h1>
+</div>
+<!-- /.col -->
+<div class="col-sm-6">
+    <ol class="breadcrumb float-sm-right">
+        <li class="breadcrumb-item"><a asp-controller="InventoryLevels" asp-action="Index">@ViewData["Title"]</a></li>
+        <li class="breadcrumb-item active">Details</li>
+    </ol>
+</div>
+<!-- /.col -->
+}
+
+
+<!-- Default box -->
+<div class="card card-solid">
+    <div class="card-body">
+        <dl>
+
+            <dt>@Html.DisplayNameFor(model => model.InStock)</dt>
+            <dd>@Html.DisplayFor(modelItem => modelItem.InStock)</dd>
+
+            <dt>@Html.DisplayNameFor(model => model.NewStock)</dt>
+            <dd>@Html.DisplayFor(modelItem => modelItem.NewStock)</dd>
+
+            <dt>@Html.DisplayNameFor(model => model.UpdatedAt)</dt>
+            <dd>@Html.DisplayFor(modelItem => modelItem.UpdatedAt)</dd>
+
+        </dl>
+    </div>
+    <!-- /.card-body -->
+</div>
+<!-- /.card -->
+<!-- Default box -->
+@if (Model.Item is not null)
+{
+    <div class="col-md-12">
+        <div class="card card-primary card-outline">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fa fa-table" aria-hidden="true"></i>
+                    @ViewData["Title"]'s Item
+                </h3>
+            </div>
+
+            <div class="card-body" id="view-all">
+                <div class="row">
+                    <dl>
+                        <dt>@Html.DisplayNameFor(model => model.Item.Name)</dt>
+                        <dd>@Html.DisplayFor(modelItem => modelItem.Item.Name)</dd>
+
+                        <dt>@Html.DisplayNameFor(model => model.Item.Description)</dt>
+                        <dd>@Html.DisplayFor(modelItem => modelItem.Item.Description)</dd>
+                    </dl>
+                </div>
+
+                <div class="text-muted mt-3">
+                    Instructions for how to use modals are available on the
+                    <a href="https://getbootstrap.com/docs/4.4/components/modal/">Bootstrap documentation</a>
+                </div>
+            </div>
+            <!-- /.card -->
+        </div>
+    </div>
+}
+
+<!-- /.card -->
+
+@section Scripts {
+<script>
+    $(document).ready(function () {
+        $("#navInventoryLevels").attr("class", "nav-link active");
+    });
+</script>
+}

@@ -1,0 +1,50 @@
+﻿@model IEnumerable<InventoryLevelsDto>
+
+@{
+    ViewData["Title"] = "Inventory Levels";
+}
+
+@section TitleAndBreadCrumbs {
+<div class="col-sm-6">
+    <h1 class="m-0">@ViewData["Title"]</h1>
+</div>
+<!-- /.col -->
+<div class="col-sm-6">
+    <ol class="breadcrumb float-sm-right">
+        <li class="breadcrumb-item active">@ViewData["Title"]</li>
+    </ol>
+</div>
+<!-- /.col -->
+}
+
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card card-primary card-outline">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fa fa-table" aria-hidden="true"></i>
+                    List
+                </h3>
+            </div>
+
+            <div class="card-body" id="view-all">
+                <partial name ="_ViewAll" for = "@Model"/>
+                <div class="text-muted mt-3">
+                    Instructions for how to use modals are available on the
+                    <a href="https://getbootstrap.com/docs/4.4/components/modal/">Bootstrap documentation</a>
+                </div>
+            </div>
+            <!-- /.card -->
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+<script>
+    $(document).ready(function () {
+        $("#navInventoryLevels").attr("class", "nav-link active");
+    });
+</script>
+}

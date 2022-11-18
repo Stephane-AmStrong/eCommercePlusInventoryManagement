@@ -3,7 +3,7 @@ using Contracts;
 using DataTransfertObjects;
 using Domain.Entities;
 using Domain.Exceptions;
-using Domain.Repositories;
+using Domain.Contracts;
 using Services.Abstractions;
 
 namespace Services
@@ -19,64 +19,85 @@ namespace Services
             _mapper = mapper;
         }
 
-        public async Task<IEnumerable<ItemCategoriesReadDto>> GetAllAsync(CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<ItemCategoriesDto>> GetAllAsync(CancellationToken cancellationToken = default)
         {
-            var inventoryLevels = await _repositoryManager.ItemCategoryRepository.GetAllAsync(cancellationToken);
+            var itemCategories = await _repositoryManager.ItemCategoryRepository.GetAllAsync(cancellationToken);
 
-            var inventoryLevelsDto = _mapper.Map<IEnumerable<ItemCategoriesReadDto>>(inventoryLevels);
+            var itemCategoriesDto = _mapper.Map<IEnumerable<ItemCategoriesDto>>(itemCategories);
 
-            return inventoryLevelsDto;
+            return itemCategoriesDto;
         }
 
-        public async Task<ItemCategoryReadDto> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+        public async Task<ItemCategoryDto> GetDetailsByIdAsync(Guid id, CancellationToken cancellationToken = default)
         {
-            var inventoryLevel = await _repositoryManager.ItemCategoryRepository.GetByIdAsync(id, cancellationToken);
+            var itemCategory = await _repositoryManager.ItemCategoryRepository.GetByIdAsync(id, cancellationToken);
 
-            if (inventoryLevel is null)
+            if (itemCategory is null)
             {
                 throw new ItemCategoryNotFoundException(id);
             }
 
-            var inventoryLevelReadDto = _mapper.Map<ItemCategoryReadDto>(inventoryLevel);
+            var itemCategoryResponse = _mapper.Map<ItemCategoryDto>(itemCategory);
 
-            return inventoryLevelReadDto;
+            return itemCategoryResponse;
         }
 
-        public async Task<ItemCategoryReadDto> CreateAsync(ItemCategoryWriteDto inventoryLevelWriteDto, CancellationToken cancellationToken = default)
+        public async Task<ItemCategoryDto> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
         {
-            var inventoryLevel = _mapper.Map<ItemCategory>(inventoryLevelWriteDto);
+            var itemCategory = await _repositoryManager.ItemCategoryRepository.GetByIdAsync(id, cancellationToken);
 
-            _repositoryManager.ItemCategoryRepository.Insert(inventoryLevel);
+            if (itemCategory is null)
+            {
+                throw new ItemCategoryNotFoundException(id);
+            }
+
+            var itemCategoryWrite = _mapper.Map<ItemCategoryDto>(itemCategory);
+
+            return itemCategoryWrite;
+        }
+
+        public async Task<ItemCategoryDto> CreateAsync(ItemCategoryDto itemCategoryDto, CancellationToken cancellationToken = default)
+        {
+            var itemCategory = _mapper.Map<ItemCategory>(itemCategoryDto);
+
+            var alreadyExist = await _repositoryManager.ItemCategoryRepository.ExistsAsync(itemCategory, cancellationToken);
+
+            if (alreadyExist)
+            {
+                throw new ItemCategoryDuplicateException(itemCategory);
+            }
+
+            _repositoryManager.ItemCategoryRepository.Insert(itemCategory);
 
             await _repositoryManager.UnitOfWork.SaveChangesAsync(cancellationToken);
 
-            return _mapper.Map<ItemCategoryReadDto>(inventoryLevel);
+            return _mapper.Map<ItemCategoryDto>(itemCategory);
         }
 
-        public async Task UpdateAsync(Guid id, ItemCategoryWriteDto inventoryLevelWriteDto, CancellationToken cancellationToken = default)
+        public async Task UpdateAsync(Guid id, ItemCategoryDto itemCategoryDto, CancellationToken cancellationToken = default)
         {
-            var inventoryLevel = await _repositoryManager.ItemCategoryRepository.GetByIdAsync(id, cancellationToken);
+            var itemCategory = await _repositoryManager.ItemCategoryRepository.GetByIdAsync(id, cancellationToken);
 
-            if (inventoryLevel is null)
+            if (itemCategory is null)
             {
                 throw new ItemCategoryNotFoundException(id);
             }
 
-            _mapper.Map(inventoryLevelWriteDto, inventoryLevel);
+            _mapper.Map(itemCategoryDto, itemCategory);
 
             await _repositoryManager.UnitOfWork.SaveChangesAsync(cancellationToken);
         }
 
         public async Task DeleteAsync(Guid id, CancellationToken cancellationToken = default)
         {
-            var inventoryLevel = await _repositoryManager.ItemCategoryRepository.GetByIdAsync(id, cancellationToken);
+            var itemCategory = await _repositoryManager.ItemCategoryRepository.GetByIdAsync(id, cancellationToken);
 
-            if (inventoryLevel is null)
+            if (itemCategory is null)
             {
                 throw new ItemCategoryNotFoundException(id);
             }
 
-            _repositoryManager.ItemCategoryRepository.Remove(inventoryLevel);
+            _repositoryManager.ItemCategoryRepository.Remove(itemCategory);
 
             await _repositoryManager.UnitOfWork.SaveChangesAsync(cancellationToken);
         }

@@ -1,61 +1,87 @@
 ﻿using Contracts;
 using DataTransfertObjects;
 using Microsoft.AspNetCore.Mvc;
+using Presentation.Helpers;
 using Services.Abstractions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static Presentation.Helpers.RazorViewHelper;
 
 namespace Presentation.Controllers
 {
-    [ApiController]
-    [Route("api/orderItems")]
-    public class OrderItemsController : ControllerBase
+    public class OrderItemsController : Controller
     {
         private readonly IServiceManager _serviceManager;
 
         public OrderItemsController(IServiceManager serviceManager) => _serviceManager = serviceManager;
 
-        [HttpGet]
-        public async Task<IActionResult> GetOrderItems(CancellationToken cancellationToken)
-        {
-            var orderItems = await _serviceManager.OrderItemService.GetAllAsync(cancellationToken);
 
-            return Ok(orderItems);
+        private async Task<IEnumerable<OrderItemsDto>> ListOrderItem(CancellationToken cancellationToken)
+        {
+            return await _serviceManager.OrderItemService.GetAllAsync(cancellationToken);
         }
 
-        [HttpGet("{id:guid}")]
-        public async Task<IActionResult> GetOrderItemById(Guid id, CancellationToken cancellationToken)
+        public async Task<IActionResult> Index(CancellationToken cancellationToken)
         {
-            var orderItemDto = await _serviceManager.OrderItemService.GetByIdAsync(id, cancellationToken);
-
-            return Ok(orderItemDto);
+            return View(await ListOrderItem(cancellationToken));
         }
+
+        public async Task<IActionResult> Details(Guid id, CancellationToken cancellationToken)
+        {
+            var orderItemCategoryDto = await _serviceManager.OrderItemService.GetDetailsByIdAsync(id, cancellationToken);
+            return View(orderItemCategoryDto);
+        }
+
+
+        [NoDirectAccess]
+        public async Task<IActionResult> Form(Guid? id, CancellationToken cancellationToken)
+        {
+            if (id is null)
+            {
+                return PartialView(new OrderItemDto());
+            }
+
+            var orderItemCategoryDto = await _serviceManager.OrderItemService.GetByIdAsync(id.Value, cancellationToken);
+            return PartialView(orderItemCategoryDto);
+        }
+
 
         [HttpPost]
-        public async Task<IActionResult> CreateOrderItem([FromBody] OrderItemWriteDto orderItemWriteDto)
+        //[ValidateAntiForgeryToken]
+        public async Task<IActionResult> Save(Guid? id, OrderItemDto orderItemCategoryRequest, CancellationToken cancellationToken)
         {
-            var orderItemDto = await _serviceManager.OrderItemService.CreateAsync(orderItemWriteDto);
+            //intervenor.AppUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!ModelState.IsValid) return Json(new { isValid = false, html = RazorViewHelper.RenderRazorViewToString(this, "Form", orderItemCategoryRequest) });
 
-            return CreatedAtAction(nameof(GetOrderItemById), new { id = orderItemDto.Id }, orderItemDto);
+            if (id is null || id == new Guid())
+            {
+                await _serviceManager.OrderItemService.CreateAsync(orderItemCategoryRequest, cancellationToken);
+            }
+            else
+            {
+                await _serviceManager.OrderItemService.UpdateAsync(id.Value, orderItemCategoryRequest, cancellationToken);
+            }
+
+            return Json(new { isValid = true, html = RazorViewHelper.RenderRazorViewToString(this, "_ViewAll", await ListOrderItem(cancellationToken)) });
         }
 
-        [HttpPut("{id:guid}")]
-        public async Task<IActionResult> UpdateOrderItem(Guid id, [FromBody] OrderItemWriteDto orderItemWriteDto, CancellationToken cancellationToken)
-        {
-            await _serviceManager.OrderItemService.UpdateAsync(id, orderItemWriteDto, cancellationToken);
 
-            return NoContent();
+        public async Task<IActionResult> RequestDeleteConfirmation(Guid? id, CancellationToken cancellationToken)
+        {
+            if (id is null) return BadRequest();
+            var orderItemCategoryDto = await _serviceManager.OrderItemService.GetByIdAsync(id.Value, cancellationToken);
+            return PartialView(orderItemCategoryDto);
         }
 
-        [HttpDelete("{id:guid}")]
-        public async Task<IActionResult> DeleteOrderItem(Guid id, CancellationToken cancellationToken)
-        {
-            await _serviceManager.OrderItemService.DeleteAsync(id, cancellationToken);
 
-            return NoContent();
+        [HttpPost]
+        public async Task<IActionResult> Delete(Guid? id, CancellationToken cancellationToken)
+        {
+            await _serviceManager.OrderItemService.DeleteAsync(id.Value, cancellationToken);
+            return Json(new { isValid = true, html = RazorViewHelper.RenderRazorViewToString(this, "_ViewAll", await ListOrderItem(cancellationToken)) });
         }
     }
 }

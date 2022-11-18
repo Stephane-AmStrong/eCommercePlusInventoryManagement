@@ -3,7 +3,7 @@ using Contracts;
 using DataTransfertObjects;
 using Domain.Entities;
 using Domain.Exceptions;
-using Domain.Repositories;
+using Domain.Contracts;
 using Services.Abstractions;
 
 namespace Services
@@ -19,16 +19,16 @@ namespace Services
             _mapper = mapper;
         }
 
-        public async Task<IEnumerable<ItemsReadDto>> GetAllAsync(CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<ItemsDto>> GetAllAsync(CancellationToken cancellationToken = default)
         {
             var items = await _repositoryManager.ItemRepository.GetAllAsync(cancellationToken);
 
-            var itemsDto = _mapper.Map<IEnumerable<ItemsReadDto>>(items);
+            var itemsDto = _mapper.Map<IEnumerable<ItemsDto>>(items);
 
             return itemsDto;
         }
 
-        public async Task<ItemReadDto> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+        public async Task<ItemDto> GetDetailsByIdAsync(Guid id, CancellationToken cancellationToken = default)
         {
             var item = await _repositoryManager.ItemRepository.GetByIdAsync(id, cancellationToken);
 
@@ -37,23 +37,44 @@ namespace Services
                 throw new ItemNotFoundException(id);
             }
 
-            var itemReadDto = _mapper.Map<ItemReadDto>(item);
+            var itemResponse = _mapper.Map<ItemDto>(item);
 
-            return itemReadDto;
+            return itemResponse;
         }
 
-        public async Task<ItemReadDto> CreateAsync(ItemWriteDto itemWriteDto, CancellationToken cancellationToken = default)
+        public async Task<ItemDto> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
         {
-            var item = _mapper.Map<Item>(itemWriteDto);
+            var item = await _repositoryManager.ItemRepository.GetByIdAsync(id, cancellationToken);
+
+            if (item is null)
+            {
+                throw new ItemNotFoundException(id);
+            }
+
+            var itemResponse = _mapper.Map<ItemDto>(item);
+
+            return itemResponse;
+        }
+
+        public async Task<ItemDto> CreateAsync(ItemDto itemDto, CancellationToken cancellationToken = default)
+        {
+            var item = _mapper.Map<Item>(itemDto);
+
+            var alreadyExist = await _repositoryManager.ItemRepository.ExistsAsync(item, cancellationToken);
+
+            if (alreadyExist)
+            {
+                throw new ItemDuplicateException(item);
+            }
 
             _repositoryManager.ItemRepository.Insert(item);
 
             await _repositoryManager.UnitOfWork.SaveChangesAsync(cancellationToken);
 
-            return _mapper.Map<ItemReadDto>(item);
+            return _mapper.Map<ItemDto>(item);
         }
 
-        public async Task UpdateAsync(Guid id, ItemWriteDto itemWriteDto, CancellationToken cancellationToken = default)
+        public async Task UpdateAsync(Guid id, ItemDto itemDto, CancellationToken cancellationToken = default)
         {
             var item = await _repositoryManager.ItemRepository.GetByIdAsync(id, cancellationToken);
 
@@ -62,7 +83,7 @@ namespace Services
                 throw new ItemNotFoundException(id);
             }
 
-            _mapper.Map(itemWriteDto, item);
+            _mapper.Map(itemDto, item);
 
             await _repositoryManager.UnitOfWork.SaveChangesAsync(cancellationToken);
         }

@@ -1,61 +1,87 @@
 ﻿using Contracts;
 using DataTransfertObjects;
 using Microsoft.AspNetCore.Mvc;
+using Presentation.Helpers;
 using Services.Abstractions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static Presentation.Helpers.RazorViewHelper;
 
 namespace Presentation.Controllers
 {
-    [ApiController]
-    [Route("api/inventoryLevels")]
-    public class InventoryLevelsController : ControllerBase
+    public class InventoryLevelsController : Controller
     {
         private readonly IServiceManager _serviceManager;
 
         public InventoryLevelsController(IServiceManager serviceManager) => _serviceManager = serviceManager;
 
-        [HttpGet]
-        public async Task<IActionResult> GetInventoryLevels(CancellationToken cancellationToken)
-        {
-            var inventoryLevels = await _serviceManager.InventoryLevelService.GetAllAsync(cancellationToken);
 
-            return Ok(inventoryLevels);
+        private async Task<IEnumerable<InventoryLevelsDto>> ListInventoryLevel(CancellationToken cancellationToken)
+        {
+            return await _serviceManager.InventoryLevelService.GetAllAsync(cancellationToken);
         }
 
-        [HttpGet("{id:guid}")]
-        public async Task<IActionResult> GetInventoryLevelById(Guid id, CancellationToken cancellationToken)
+        public async Task<IActionResult> Index(CancellationToken cancellationToken)
         {
-            var inventoryLevelDto = await _serviceManager.InventoryLevelService.GetByIdAsync(id, cancellationToken);
-
-            return Ok(inventoryLevelDto);
+            return View(await ListInventoryLevel(cancellationToken));
         }
 
+        public async Task<IActionResult> Details(Guid id, CancellationToken cancellationToken)
+        {
+            var inventoryLevelDto = await _serviceManager.InventoryLevelService.GetDetailsByIdAsync(id, cancellationToken);
+            return View(inventoryLevelDto);
+        }
+
+
+        [NoDirectAccess]
+        public async Task<IActionResult> Form(Guid? id, CancellationToken cancellationToken)
+        {
+            if(id is null)
+            {
+                return PartialView(new InventoryLevelDto());
+            }
+            
+            var inventoryLevelDto = await _serviceManager.InventoryLevelService.GetByIdAsync(id.Value, cancellationToken);
+            return PartialView(inventoryLevelDto);
+        }
+
+        
         [HttpPost]
-        public async Task<IActionResult> CreateInventoryLevel([FromBody] InventoryLevelWriteDto inventoryLevelWriteDto)
+        //[ValidateAntiForgeryToken]
+        public async Task<IActionResult> Save(Guid? id, InventoryLevelDto inventoryLevel, CancellationToken cancellationToken)
         {
-            var inventoryLevelDto = await _serviceManager.InventoryLevelService.CreateAsync(inventoryLevelWriteDto);
+            //intervenor.AppUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!ModelState.IsValid) return Json(new { isValid = false, html = RazorViewHelper.RenderRazorViewToString(this, "Form", inventoryLevel) });
 
-            return CreatedAtAction(nameof(GetInventoryLevelById), new { id = inventoryLevelDto.Id }, inventoryLevelDto);
+            if (id is null || id == new Guid())
+            {
+                await _serviceManager.InventoryLevelService.CreateAsync(inventoryLevel, cancellationToken);
+            }
+            else
+            {
+                await _serviceManager.InventoryLevelService.UpdateAsync(id.Value, inventoryLevel, cancellationToken);
+            }
+
+            return Json(new { isValid = true, html = RazorViewHelper.RenderRazorViewToString(this, "_ViewAll", await ListInventoryLevel(cancellationToken)) });
         }
 
-        [HttpPut("{id:guid}")]
-        public async Task<IActionResult> UpdateInventoryLevel(Guid id, [FromBody] InventoryLevelWriteDto inventoryLevelWriteDto, CancellationToken cancellationToken)
-        {
-            await _serviceManager.InventoryLevelService.UpdateAsync(id, inventoryLevelWriteDto, cancellationToken);
 
-            return NoContent();
+        public async Task<IActionResult> RequestDeleteConfirmation(Guid? id, CancellationToken cancellationToken)
+        {
+            if (id == null) return BadRequest();
+            var inventoryLevelDto = await _serviceManager.InventoryLevelService.GetByIdAsync(id.Value, cancellationToken);
+            return View(inventoryLevelDto);
         }
 
-        [HttpDelete("{id:guid}")]
-        public async Task<IActionResult> DeleteInventoryLevel(Guid id, CancellationToken cancellationToken)
-        {
-            await _serviceManager.InventoryLevelService.DeleteAsync(id, cancellationToken);
 
-            return NoContent();
+        [HttpDelete]
+        public async Task<IActionResult> Delete(Guid? id, CancellationToken cancellationToken)
+        {
+            await _serviceManager.InventoryLevelService.DeleteAsync(id.Value, cancellationToken);
+            return Json(new { isValid = true, html = RazorViewHelper.RenderRazorViewToString(this, "_ViewAll", await ListInventoryLevel(cancellationToken)) });
         }
     }
 }

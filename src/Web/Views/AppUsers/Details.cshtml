@@ -1,0 +1,159 @@
+﻿@model AppUserDto
+
+@{
+    ViewData["Title"] = "App User";
+}
+
+@section TitleAndBreadCrumbs {
+<div class="col-sm-6">
+    <h1 class="m-0">@ViewData["Title"]</h1>
+</div>
+<!-- /.col -->
+<div class="col-sm-6">
+    <ol class="breadcrumb float-sm-right">
+        <li class="breadcrumb-item"><a asp-controller="AppUsers" asp-action="Index">@ViewData["Title"]</a></li>
+        <li class="breadcrumb-item active">Details</li>
+    </ol>
+</div>
+<!-- /.col -->
+}
+
+
+<!-- Default box -->
+<div class="card card-solid">
+    <div class="card-body">
+        <dl>
+            <dt>@Html.DisplayNameFor(model => model.FirstName)</dt>
+            <dd>@Html.DisplayFor(modelItem => modelItem.FirstName)</dd>
+            
+            <dt>@Html.DisplayNameFor(model => model.LastName)</dt>
+            <dd>@Html.DisplayFor(modelItem => modelItem.LastName)</dd>
+            
+            <dt>@Html.DisplayNameFor(model => model.Birthdate)</dt>
+            <dd>@Html.DisplayFor(modelItem => modelItem.Birthdate)</dd>
+        </dl>
+    </div>
+    <!-- /.card-body -->
+</div>
+<!-- /.card -->
+
+
+@if (Model.Items.Any())
+{
+    <div class="col-md-12">
+        <div class="card card-primary card-outline">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fa fa-table" aria-hidden="true"></i>
+                    User's Items
+                </h3>
+            </div>
+
+            <div class="card-body" id="view-all">
+                <div class="row">
+                    <table class="table table-bordered table-hover">
+                        <thead>
+                            <tr>
+                                <th>
+                                    @Html.DisplayNameFor(model => model.Items.FirstOrDefault().Name)
+                                </th>
+                                <th>
+                                    @Html.DisplayNameFor(model => model.Items.FirstOrDefault().Description)
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="table-hover">
+                            @foreach (var item in Model.Items)
+                            {
+                                <tr>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item.Name)
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item.Description)
+                                    </td>
+                                    <td style="text-align:right">
+                                        <a class="btn btn-sm btn-outline-info" asp-controller="Items" asp-action="Details" asp-route-id="@item.Id">
+                                            <i class="fas fa-info-circle" title="Details"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="text-muted mt-3">
+                    Instructions for how to use modals are available on the
+                    <a href="https://getbootstrap.com/docs/4.4/components/modal/">Bootstrap documentation</a>
+                </div>
+            </div>
+            <!-- /.card -->
+    </div>
+    </div>
+}
+
+@if (Model.Orders.Any())
+{
+    <div class="col-md-12">
+        <div class="card card-primary card-outline">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fa fa-table" aria-hidden="true"></i>
+                    User's Orders
+                </h3>
+            </div>
+
+            <div class="card-body" id="view-all">
+                <div class="row">
+                    <table class="table table-bordered table-hover">
+                        <thead>
+                            <tr>
+                                <th>
+                                    @Html.DisplayNameFor(model => model.Orders.FirstOrDefault().Date)
+                                </th>
+                                <th>
+                                    @Html.DisplayNameFor(model => model.Orders.FirstOrDefault().Total)
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="table-hover">
+                            @foreach (var item in Model.Orders)
+                            {
+                                <tr>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item.Date)
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item.Total)
+                                    </td>
+                                    <td style="text-align:right">
+                                        <a class="btn btn-sm btn-outline-info" asp-controller="Items" asp-action="Details" asp-route-id="@item.Id">
+                                            <i class="fas fa-info-circle" title="Details"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="text-muted mt-3">
+                    Instructions for how to use modals are available on the
+                    <a href="https://getbootstrap.com/docs/4.4/components/modal/">Bootstrap documentation</a>
+                </div>
+            </div>
+            <!-- /.card -->
+    </div>
+    </div>
+}
+
+<!-- /.card -->
+
+@section Scripts {
+<script>
+    $(document).ready(function () {
+        $("#navAppUsers").attr("class", "nav-link active");
+    });
+</script>
+}

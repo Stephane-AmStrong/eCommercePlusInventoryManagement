@@ -5,13 +5,15 @@ namespace Services.Abstractions
 {
     public interface IItemService
     {
-        Task<IEnumerable<ItemsReadDto>> GetAllAsync(CancellationToken cancellationToken = default);
+        Task<IEnumerable<ItemsDto>> GetAllAsync(CancellationToken cancellationToken = default);
 
-        Task<ItemReadDto> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+        Task<ItemDto> GetDetailsByIdAsync(Guid id, CancellationToken cancellationToken = default);
 
-        Task<ItemReadDto> CreateAsync(ItemWriteDto item, CancellationToken cancellationToken = default);
+        Task<ItemDto> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
 
-        Task UpdateAsync(Guid id, ItemWriteDto item, CancellationToken cancellationToken = default);
+        Task<ItemDto> CreateAsync(ItemDto item, CancellationToken cancellationToken = default);
+
+        Task UpdateAsync(Guid id, ItemDto item, CancellationToken cancellationToken = default);
 
         Task DeleteAsync(Guid id, CancellationToken cancellationToken = default);
     }

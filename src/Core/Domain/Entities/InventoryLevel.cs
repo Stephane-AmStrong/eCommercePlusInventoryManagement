@@ -15,7 +15,7 @@ namespace Domain.Entities
         public DateTime UpdatedAt { get; set; }
         public Guid ItemId { get; set; }
 
-        //[ForeignKey("ItemId")]
+        [ForeignKey("ItemId")]
         public virtual Item Item { get; set; }
 
     }

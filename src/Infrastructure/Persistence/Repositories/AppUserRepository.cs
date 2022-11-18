@@ -1,5 +1,5 @@
 ﻿using Domain.Entities;
-using Domain.Repositories;
+using Domain.Contracts;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -24,12 +24,18 @@ namespace Persistence.Repositories
         }
             
 
-        public async Task<AppUser> GetByIdAsync(string id, CancellationToken cancellationToken = default)
+        public async Task<AppUser> GetDetailsByIdAsync(string id, CancellationToken cancellationToken = default)
         {
             return await _dbContext.AppUsers
                 .Include(x => x.Items)
                 .Include(x => x.Orders)
                 .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+        }
+            
+
+        public async Task<AppUser> GetByIdAsync(string id, CancellationToken cancellationToken = default)
+        {
+            return await _dbContext.AppUsers.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
         }
 
         public void Insert(AppUser appUser) => _dbContext.AppUsers.Add(appUser);

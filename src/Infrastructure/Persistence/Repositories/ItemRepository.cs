@@ -1,5 +1,5 @@
 ﻿using Domain.Entities;
-using Domain.Repositories;
+using Domain.Contracts;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -23,15 +23,29 @@ namespace Persistence.Repositories
                 .Include(x => x.OrderItems)
                 .ToListAsync(cancellationToken);
         }
-            
 
-        public async Task<Item> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+        public async Task<Item> GetDetailsByIdAsync(Guid id, CancellationToken cancellationToken = default)
         {
             return await _dbContext.Items
                 .Include(x => x.ItemCategory)
                 .Include(x => x.InventoryLevels)
                 .Include(x => x.OrderItems)
                 .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+        }
+
+        public async Task<Item> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+        {
+            return await _dbContext.Items.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+        }
+
+        public Task<bool> ExistsAsync(Item item, CancellationToken cancellationToken = default)
+        {
+            return _dbContext.Items.AnyAsync(x => 
+                x.Name == item.Name &&
+                x.Description == item.Description &&
+                x.SellerId == item.SellerId &&
+                x.ItemCategoryId == item.ItemCategoryId
+                , cancellationToken);
         }
 
         public void Insert(Item item) => _dbContext.Items.Add(item);

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
@@ -17,9 +18,10 @@ namespace Domain.Entities
         public Guid Id { get; set; }
         public DateTime Date { get; set; }
         public int Total { get; set; }
+        [Required]
         public string CustomerId { get; set; }
 
-        //[ForeignKey("CustomerId")]
+        [ForeignKey("CustomerId")]
         public virtual AppUser Customer { get; set; }
         public virtual ICollection<OrderItem> OrderItems { get; set; }
     }

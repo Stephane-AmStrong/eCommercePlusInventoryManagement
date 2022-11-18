@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using Domain.Repositories;
+using Domain.Contracts;
 using Services.Abstractions;
 using System;
 using System.Collections.Generic;

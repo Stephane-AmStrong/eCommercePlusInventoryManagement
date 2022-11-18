@@ -13,29 +13,23 @@ namespace Services.Mappings
     {
         public MappingProfile()
         {
-            CreateMap<AppUser, AppUserReadDto>().ReverseMap();
-            CreateMap<AppUser, AppUsersReadDto>().ReverseMap();
-            CreateMap<AppUser, AppUserWriteDto>().ReverseMap();
+            CreateMap<AppUser, AppUserDto>().ReverseMap();
+            CreateMap<AppUser, AppUsersDto>().ReverseMap();
 
-            CreateMap<InventoryLevel, InventoryLevelReadDto>().ReverseMap();
-            CreateMap<InventoryLevel, InventoryLevelsReadDto>().ReverseMap();
-            CreateMap<InventoryLevel, InventoryLevelWriteDto>().ReverseMap();
+            CreateMap<InventoryLevel, InventoryLevelDto>().ReverseMap();
+            CreateMap<InventoryLevel, InventoryLevelsDto>().ReverseMap();
             
-            CreateMap<Item, ItemReadDto>().ReverseMap();
-            CreateMap<Item, ItemsReadDto>().ReverseMap();
-            CreateMap<Item, ItemWriteDto>().ReverseMap();
+            CreateMap<Item, ItemDto>().ReverseMap();
+            CreateMap<Item, ItemsDto>().ReverseMap();
             
-            CreateMap<ItemCategory, ItemCategoryReadDto>().ReverseMap();
-            CreateMap<ItemCategory, ItemCategoriesReadDto>().ReverseMap();
-            CreateMap<ItemCategory, ItemCategoryWriteDto>().ReverseMap();
+            CreateMap<ItemCategory, ItemCategoryDto>().ReverseMap();
+            CreateMap<ItemCategory, ItemCategoriesDto>().ReverseMap();
             
-            CreateMap<Order, OrderReadDto>().ReverseMap();
-            CreateMap<Order, OrdersReadDto>().ReverseMap();
-            CreateMap<Order, OrderWriteDto>().ReverseMap();
+            CreateMap<Order, OrderDto>().ReverseMap();
+            CreateMap<Order, OrdersDto>().ReverseMap();
             
-            CreateMap<OrderItem, OrderItemReadDto>().ReverseMap();
-            CreateMap<OrderItem, OrderItemsReadDto>().ReverseMap();
-            CreateMap<OrderItem, OrderItemWriteDto>().ReverseMap();
+            CreateMap<OrderItem, OrderItemDto>().ReverseMap();
+            CreateMap<OrderItem, OrderItemsDto>().ReverseMap();
             
 
         }

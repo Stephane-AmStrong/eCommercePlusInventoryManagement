@@ -1,7 +1,7 @@
 ﻿using Contracts;
 using Domain.Entities;
 using Domain.Exceptions;
-using Domain.Repositories;
+using Domain.Contracts;
 using Mapster;
 using Services.Abstractions;
 

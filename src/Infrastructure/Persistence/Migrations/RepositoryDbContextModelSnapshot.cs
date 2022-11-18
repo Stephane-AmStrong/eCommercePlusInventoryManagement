@@ -108,6 +108,7 @@ namespace Persistence.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("SellerId")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Id");
@@ -125,7 +126,7 @@ namespace Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<string>("Descrption")
+                    b.Property<string>("Description")
                         .HasColumnType("text");
 
                     b.Property<string>("Name")
@@ -144,6 +145,7 @@ namespace Persistence.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<string>("CustomerId")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<DateTime>("Date")
@@ -239,7 +241,8 @@ namespace Persistence.Migrations
                     b.HasOne("Domain.Entities.AppUser", "Seller")
                         .WithMany("Items")
                         .HasForeignKey("SellerId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("ItemCategory");
 
@@ -251,7 +254,8 @@ namespace Persistence.Migrations
                     b.HasOne("Domain.Entities.AppUser", "Customer")
                         .WithMany("Orders")
                         .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Customer");
                 });

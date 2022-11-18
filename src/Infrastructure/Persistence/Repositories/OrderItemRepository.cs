@@ -1,5 +1,5 @@
 ﻿using Domain.Entities;
-using Domain.Repositories;
+using Domain.Contracts;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -15,14 +15,25 @@ namespace Persistence.Repositories
 
         public OrderItemRepository(RepositoryDbContext dbContext) => _dbContext = dbContext;
 
+        public async Task<OrderItem> GetDetailsByIdAsync(Guid id, CancellationToken cancellationToken = default) =>
+            await _dbContext.OrderItems.Include(x => x.Order).FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+        
+        public async Task<OrderItem> GetByIdAsync(Guid id, CancellationToken cancellationToken = default) =>
+            await _dbContext.OrderItems.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+
+
+        public async Task<bool> ExistsAsync(OrderItem orderItem, CancellationToken cancellationToken = default) =>
+            await _dbContext.OrderItems.AnyAsync(x => 
+                x.Qte == orderItem.Qte &&
+                x.Total == orderItem.Total &&
+                x.OrderId == orderItem.OrderId &&
+                x.ItemId == orderItem.ItemId
+            , cancellationToken);
+
         public async Task<IEnumerable<OrderItem>> GetAllAsync(CancellationToken cancellationToken = default) =>
             await _dbContext.OrderItems.Include(x => x.Order).ToListAsync(cancellationToken);
+        public void Insert(OrderItem orderItem) => _dbContext.OrderItems.Add(orderItem);
 
-        public async Task<OrderItem> GetByIdAsync(Guid id, CancellationToken cancellationToken = default) =>
-            await _dbContext.OrderItems.Include(x => x.Order).FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
-
-        public void Insert(OrderItem order) => _dbContext.OrderItems.Add(order);
-
-        public void Remove(OrderItem order) => _dbContext.OrderItems.Remove(order);
+        public void Remove(OrderItem orderItem) => _dbContext.OrderItems.Remove(orderItem);
     }
 }

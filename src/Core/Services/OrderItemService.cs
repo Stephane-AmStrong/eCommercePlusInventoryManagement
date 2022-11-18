@@ -3,7 +3,7 @@ using Contracts;
 using DataTransfertObjects;
 using Domain.Entities;
 using Domain.Exceptions;
-using Domain.Repositories;
+using Domain.Contracts;
 using Services.Abstractions;
 
 namespace Services
@@ -19,16 +19,16 @@ namespace Services
             _mapper = mapper;
         }
 
-        public async Task<IEnumerable<OrderItemsReadDto>> GetAllAsync(CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<OrderItemsDto>> GetAllAsync(CancellationToken cancellationToken = default)
         {
             var orderItems = await _repositoryManager.OrderItemRepository.GetAllAsync(cancellationToken);
 
-            var orderItemsDto = _mapper.Map<IEnumerable<OrderItemsReadDto>>(orderItems);
+            var orderItemsDto = _mapper.Map<IEnumerable<OrderItemsDto>>(orderItems);
 
             return orderItemsDto;
         }
 
-        public async Task<OrderItemReadDto> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+        public async Task<OrderItemDto> GetDetailsByIdAsync(Guid id, CancellationToken cancellationToken = default)
         {
             var orderItem = await _repositoryManager.OrderItemRepository.GetByIdAsync(id, cancellationToken);
 
@@ -37,23 +37,44 @@ namespace Services
                 throw new OrderItemNotFoundException(id);
             }
 
-            var orderItemReadDto = _mapper.Map<OrderItemReadDto>(orderItem);
+            var orderItemResponse = _mapper.Map<OrderItemDto>(orderItem);
 
-            return orderItemReadDto;
+            return orderItemResponse;
         }
 
-        public async Task<OrderItemReadDto> CreateAsync(OrderItemWriteDto orderItemWriteDto, CancellationToken cancellationToken = default)
+        public async Task<OrderItemDto> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
         {
-            var orderItem = _mapper.Map<OrderItem>(orderItemWriteDto);
+            var orderItem = await _repositoryManager.OrderItemRepository.GetByIdAsync(id, cancellationToken);
+
+            if (orderItem is null)
+            {
+                throw new OrderItemNotFoundException(id);
+            }
+
+            var orderItemResponse = _mapper.Map<OrderItemDto>(orderItem);
+
+            return orderItemResponse;
+        }
+
+        public async Task<OrderItemDto> CreateAsync(OrderItemDto orderItemDto, CancellationToken cancellationToken = default)
+        {
+            var orderItem = _mapper.Map<OrderItem>(orderItemDto);
+
+            var alreadyExist = await _repositoryManager.OrderItemRepository.ExistsAsync(orderItem, cancellationToken);
+
+            if (alreadyExist)
+            {
+                throw new OrderItemDuplicateException(orderItem);
+            }
 
             _repositoryManager.OrderItemRepository.Insert(orderItem);
 
             await _repositoryManager.UnitOfWork.SaveChangesAsync(cancellationToken);
 
-            return _mapper.Map<OrderItemReadDto>(orderItem);
+            return _mapper.Map<OrderItemDto>(orderItem);
         }
 
-        public async Task UpdateAsync(Guid id, OrderItemWriteDto orderItemWriteDto, CancellationToken cancellationToken = default)
+        public async Task UpdateAsync(Guid id, OrderItemDto orderItemDto, CancellationToken cancellationToken = default)
         {
             var orderItem = await _repositoryManager.OrderItemRepository.GetByIdAsync(id, cancellationToken);
 
@@ -62,7 +83,7 @@ namespace Services
                 throw new OrderItemNotFoundException(id);
             }
 
-            _mapper.Map(orderItemWriteDto, orderItem);
+            _mapper.Map(orderItemDto, orderItem);
 
             await _repositoryManager.UnitOfWork.SaveChangesAsync(cancellationToken);
         }

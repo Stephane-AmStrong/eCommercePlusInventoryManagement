@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
@@ -16,15 +17,20 @@ namespace Domain.Entities
         }
 
         public Guid Id { get; set; }
+        [Required]
         public string Name { get; set; }
         public string Description { get; set; }
+
+        [Required]
         public string SellerId { get; set; }
+
+        [Required]
         public Guid ItemCategoryId { get; set; }
 
-        //[ForeignKey("SellerId")]
+        [ForeignKey("SellerId")]
         public virtual AppUser Seller { get; set; }
 
-        //[ForeignKey("ItemCategoryId")]
+        [ForeignKey("ItemCategoryId")]
         public virtual ItemCategory ItemCategory { get; set; }
 
         public virtual ICollection<InventoryLevel> InventoryLevels { get; set; }

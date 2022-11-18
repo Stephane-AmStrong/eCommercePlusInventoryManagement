@@ -3,7 +3,7 @@ using Contracts;
 using DataTransfertObjects;
 using Domain.Entities;
 using Domain.Exceptions;
-using Domain.Repositories;
+using Domain.Contracts;
 using Services.Abstractions;
 
 namespace Services
@@ -18,17 +18,19 @@ namespace Services
             _repositoryManager = repositoryManager;
             _mapper = mapper;
         }
+        
 
-        public async Task<IEnumerable<InventoryLevelsReadDto>> GetAllAsync(CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<InventoryLevelsDto>> GetAllAsync(CancellationToken cancellationToken = default)
         {
             var inventoryLevels = await _repositoryManager.InventoryLevelRepository.GetAllAsync(cancellationToken);
 
-            var inventoryLevelsDto = _mapper.Map<IEnumerable<InventoryLevelsReadDto>>(inventoryLevels);
+            var inventoryLevelsDto = _mapper.Map<IEnumerable<InventoryLevelsDto>>(inventoryLevels);
 
             return inventoryLevelsDto;
         }
 
-        public async Task<InventoryLevelReadDto> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+
+        public async Task<InventoryLevelDto> GetDetailsByIdAsync(Guid id, CancellationToken cancellationToken = default)
         {
             var inventoryLevel = await _repositoryManager.InventoryLevelRepository.GetByIdAsync(id, cancellationToken);
 
@@ -37,23 +39,48 @@ namespace Services
                 throw new InventoryLevelNotFoundException(id);
             }
 
-            var inventoryLevelReadDto = _mapper.Map<InventoryLevelReadDto>(inventoryLevel);
+            var inventoryLevelResponse = _mapper.Map<InventoryLevelDto>(inventoryLevel);
 
-            return inventoryLevelReadDto;
+            return inventoryLevelResponse;
         }
 
-        public async Task<InventoryLevelReadDto> CreateAsync(InventoryLevelWriteDto inventoryLevelWriteDto, CancellationToken cancellationToken = default)
+
+        public async Task<InventoryLevelDto> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
         {
-            var inventoryLevel = _mapper.Map<InventoryLevel>(inventoryLevelWriteDto);
+            var inventoryLevel = await _repositoryManager.InventoryLevelRepository.GetByIdAsync(id, cancellationToken);
+
+            if (inventoryLevel is null)
+            {
+                throw new InventoryLevelNotFoundException(id);
+            }
+
+            var inventoryLevelResponse = _mapper.Map<InventoryLevelDto>(inventoryLevel);
+
+            return inventoryLevelResponse;
+        }
+
+
+        public async Task<InventoryLevelDto> CreateAsync(InventoryLevelDto inventoryLevelDto, CancellationToken cancellationToken = default)
+        {
+            
+            var inventoryLevel = _mapper.Map<InventoryLevel>(inventoryLevelDto);
+
+            var alreadyExist = await _repositoryManager.InventoryLevelRepository.ExistsAsync(inventoryLevel, cancellationToken);
+
+            if (alreadyExist)
+            {
+                throw new InventoryLevelDuplicateException(inventoryLevel);
+            }
 
             _repositoryManager.InventoryLevelRepository.Insert(inventoryLevel);
 
             await _repositoryManager.UnitOfWork.SaveChangesAsync(cancellationToken);
 
-            return _mapper.Map<InventoryLevelReadDto>(inventoryLevel);
+            return _mapper.Map<InventoryLevelDto>(inventoryLevel);
         }
 
-        public async Task UpdateAsync(Guid id, InventoryLevelWriteDto inventoryLevelWriteDto, CancellationToken cancellationToken = default)
+
+        public async Task UpdateAsync(Guid id, InventoryLevelDto inventoryLevelDto, CancellationToken cancellationToken = default)
         {
             var inventoryLevel = await _repositoryManager.InventoryLevelRepository.GetByIdAsync(id, cancellationToken);
 
@@ -62,10 +89,11 @@ namespace Services
                 throw new InventoryLevelNotFoundException(id);
             }
 
-            _mapper.Map(inventoryLevelWriteDto, inventoryLevel);
+            _mapper.Map(inventoryLevelDto, inventoryLevel);
 
             await _repositoryManager.UnitOfWork.SaveChangesAsync(cancellationToken);
         }
+
 
         public async Task DeleteAsync(Guid id, CancellationToken cancellationToken = default)
         {

@@ -1,61 +1,87 @@
 ﻿using Contracts;
 using DataTransfertObjects;
 using Microsoft.AspNetCore.Mvc;
+using Presentation.Helpers;
 using Services.Abstractions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static Presentation.Helpers.RazorViewHelper;
 
 namespace Presentation.Controllers
 {
-    [ApiController]
-    [Route("api/itemCategories")]
-    public class ItemCategoriesController : ControllerBase
+    public class ItemCategoriesController : Controller
     {
         private readonly IServiceManager _serviceManager;
 
         public ItemCategoriesController(IServiceManager serviceManager) => _serviceManager = serviceManager;
 
-        [HttpGet]
-        public async Task<IActionResult> GetItemCategories(CancellationToken cancellationToken)
-        {
-            var itemCategories = await _serviceManager.ItemCategoryService.GetAllAsync(cancellationToken);
 
-            return Ok(itemCategories);
+        private async Task<IEnumerable<ItemCategoriesDto>> ListItemCategory(CancellationToken cancellationToken)
+        {
+            return await _serviceManager.ItemCategoryService.GetAllAsync(cancellationToken);
         }
 
-        [HttpGet("{id:guid}")]
-        public async Task<IActionResult> GetItemCategoryById(Guid id, CancellationToken cancellationToken)
+        public async Task<IActionResult> Index(CancellationToken cancellationToken)
         {
-            var itemCategoryDto = await _serviceManager.ItemCategoryService.GetByIdAsync(id, cancellationToken);
-
-            return Ok(itemCategoryDto);
+            return View(await ListItemCategory(cancellationToken));
         }
+
+        public async Task<IActionResult> Details(Guid id, CancellationToken cancellationToken)
+        {
+            var itemCategoryDto = await _serviceManager.ItemCategoryService.GetDetailsByIdAsync(id, cancellationToken);
+            return View(itemCategoryDto);
+        }
+
+
+        [NoDirectAccess]
+        public async Task<IActionResult> Form(Guid? id, CancellationToken cancellationToken)
+        {
+            if (id is null)
+            {
+                return PartialView(new ItemCategoryDto());
+            }
+
+            var itemCategoryDto = await _serviceManager.ItemCategoryService.GetByIdAsync(id.Value, cancellationToken);
+            return PartialView(itemCategoryDto);
+        }
+
 
         [HttpPost]
-        public async Task<IActionResult> CreateItemCategory([FromBody] ItemCategoryWriteDto itemCategoryWriteDto)
+        //[ValidateAntiForgeryToken]
+        public async Task<IActionResult> Save(Guid? id, ItemCategoryDto itemCategoryRequest, CancellationToken cancellationToken)
         {
-            var itemCategoryDto = await _serviceManager.ItemCategoryService.CreateAsync(itemCategoryWriteDto);
+            //intervenor.AppUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!ModelState.IsValid) return Json(new { isValid = false, html = RazorViewHelper.RenderRazorViewToString(this, "Form", itemCategoryRequest) });
 
-            return CreatedAtAction(nameof(GetItemCategoryById), new { id = itemCategoryDto.Id }, itemCategoryDto);
+            if (id is null || id == new Guid())
+            {
+                await _serviceManager.ItemCategoryService.CreateAsync(itemCategoryRequest, cancellationToken);
+            }
+            else
+            {
+                await _serviceManager.ItemCategoryService.UpdateAsync(id.Value, itemCategoryRequest, cancellationToken);
+            }
+
+            return Json(new { isValid = true, html = RazorViewHelper.RenderRazorViewToString(this, "_ViewAll", await ListItemCategory(cancellationToken)) });
         }
 
-        [HttpPut("{id:guid}")]
-        public async Task<IActionResult> UpdateItemCategory(Guid id, [FromBody] ItemCategoryWriteDto itemCategoryWriteDto, CancellationToken cancellationToken)
-        {
-            await _serviceManager.ItemCategoryService.UpdateAsync(id, itemCategoryWriteDto, cancellationToken);
 
-            return NoContent();
+        public async Task<IActionResult> RequestDeleteConfirmation(Guid? id, CancellationToken cancellationToken)
+        {
+            if (id is null) return BadRequest();
+            var itemCategoryDto = await _serviceManager.ItemCategoryService.GetByIdAsync(id.Value, cancellationToken);
+            return PartialView(itemCategoryDto);
         }
 
-        [HttpDelete("{id:guid}")]
-        public async Task<IActionResult> DeleteItemCategory(Guid id, CancellationToken cancellationToken)
-        {
-            await _serviceManager.ItemCategoryService.DeleteAsync(id, cancellationToken);
 
-            return NoContent();
+        [HttpPost]
+        public async Task<IActionResult> Delete(Guid? id, CancellationToken cancellationToken)
+        {
+            await _serviceManager.ItemCategoryService.DeleteAsync(id.Value, cancellationToken);
+            return Json(new { isValid = true, html = RazorViewHelper.RenderRazorViewToString(this, "_ViewAll", await ListItemCategory(cancellationToken)) });
         }
     }
 }

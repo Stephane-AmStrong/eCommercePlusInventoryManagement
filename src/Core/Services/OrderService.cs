@@ -3,7 +3,7 @@ using Contracts;
 using DataTransfertObjects;
 using Domain.Entities;
 using Domain.Exceptions;
-using Domain.Repositories;
+using Domain.Contracts;
 using Services.Abstractions;
 
 namespace Services
@@ -19,16 +19,16 @@ namespace Services
             _mapper = mapper;
         }
 
-        public async Task<IEnumerable<OrdersReadDto>> GetAllAsync(CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<OrdersDto>> GetAllAsync(CancellationToken cancellationToken = default)
         {
             var orders = await _repositoryManager.OrderRepository.GetAllAsync(cancellationToken);
 
-            var ordersDto = _mapper.Map<IEnumerable<OrdersReadDto>>(orders);
+            var ordersDto = _mapper.Map<IEnumerable<OrdersDto>>(orders);
 
             return ordersDto;
         }
 
-        public async Task<OrderReadDto> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+        public async Task<OrderDto> GetDetailsByIdAsync(Guid id, CancellationToken cancellationToken = default)
         {
             var order = await _repositoryManager.OrderRepository.GetByIdAsync(id, cancellationToken);
 
@@ -37,23 +37,44 @@ namespace Services
                 throw new OrderNotFoundException(id);
             }
 
-            var orderReadDto = _mapper.Map<OrderReadDto>(order);
+            var orderResponse = _mapper.Map<OrderDto>(order);
 
-            return orderReadDto;
+            return orderResponse;
         }
 
-        public async Task<OrderReadDto> CreateAsync(OrderWriteDto orderWriteDto, CancellationToken cancellationToken = default)
+        public async Task<OrderDto> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
         {
-            var order = _mapper.Map<Order>(orderWriteDto);
+            var order = await _repositoryManager.OrderRepository.GetByIdAsync(id, cancellationToken);
+
+            if (order is null)
+            {
+                throw new OrderNotFoundException(id);
+            }
+
+            var orderResponse = _mapper.Map<OrderDto>(order);
+
+            return orderResponse;
+        }
+
+        public async Task<OrderDto> CreateAsync(OrderDto orderDto, CancellationToken cancellationToken = default)
+        {
+            var order = _mapper.Map<Order>(orderDto);
+
+            var alreadyExist = await _repositoryManager.OrderRepository.ExistsAsync(order, cancellationToken);
+
+            if (alreadyExist)
+            {
+                throw new OrderDuplicateException(order);
+            }
 
             _repositoryManager.OrderRepository.Insert(order);
 
             await _repositoryManager.UnitOfWork.SaveChangesAsync(cancellationToken);
 
-            return _mapper.Map<OrderReadDto>(order);
+            return _mapper.Map<OrderDto>(order);
         }
 
-        public async Task UpdateAsync(Guid id, OrderWriteDto orderWriteDto, CancellationToken cancellationToken = default)
+        public async Task UpdateAsync(Guid id, OrderDto orderDto, CancellationToken cancellationToken = default)
         {
             var order = await _repositoryManager.OrderRepository.GetByIdAsync(id, cancellationToken);
 
@@ -62,7 +83,7 @@ namespace Services
                 throw new OrderNotFoundException(id);
             }
 
-            _mapper.Map(orderWriteDto, order);
+            _mapper.Map(orderDto, order);
 
             await _repositoryManager.UnitOfWork.SaveChangesAsync(cancellationToken);
         }

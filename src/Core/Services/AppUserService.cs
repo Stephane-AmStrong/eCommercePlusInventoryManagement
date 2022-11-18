@@ -3,7 +3,7 @@ using Contracts;
 using DataTransfertObjects;
 using Domain.Entities;
 using Domain.Exceptions;
-using Domain.Repositories;
+using Domain.Contracts;
 using Services.Abstractions;
 
 namespace Services
@@ -19,16 +19,16 @@ namespace Services
             _mapper = mapper;
         }
 
-        public async Task<IEnumerable<AppUsersReadDto>> GetAllAsync(CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<AppUsersDto>> GetAllAsync(CancellationToken cancellationToken = default)
         {
             var appUsers = await _repositoryManager.AppUserRepository.GetAllAsync(cancellationToken);
 
-            var appUsersDto = _mapper.Map<IEnumerable<AppUsersReadDto>>(appUsers);
+            var appUsersDto = _mapper.Map<IEnumerable<AppUsersDto>>(appUsers);
 
             return appUsersDto;
         }
 
-        public async Task<AppUserReadDto> GetByIdAsync(string id, CancellationToken cancellationToken = default)
+        public async Task<AppUserDto> GetDetailsByIdAsync(string id, CancellationToken cancellationToken = default)
         {
             var appUser = await _repositoryManager.AppUserRepository.GetByIdAsync(id, cancellationToken);
 
@@ -37,23 +37,37 @@ namespace Services
                 throw new AppUserNotFoundException(id);
             }
 
-            var appUserReadDto = _mapper.Map<AppUserReadDto>(appUser);
+            var appUserResponse = _mapper.Map<AppUserDto>(appUser);
 
-            return appUserReadDto;
+            return appUserResponse;
         }
 
-        public async Task<AppUserReadDto> CreateAsync(AppUserWriteDto appUserWriteDto, CancellationToken cancellationToken = default)
+        public async Task<AppUserDto> GetByIdAsync(string id, CancellationToken cancellationToken = default)
         {
-            var appUser = _mapper.Map<AppUser>(appUserWriteDto);
+            var appUser = await _repositoryManager.AppUserRepository.GetByIdAsync(id, cancellationToken);
+
+            if (appUser is null)
+            {
+                throw new AppUserNotFoundException(id);
+            }
+
+            var appUserResponse = _mapper.Map<AppUserDto>(appUser);
+
+            return appUserResponse;
+        }
+
+        public async Task<AppUserDto> CreateAsync(AppUserDto appUserDto, CancellationToken cancellationToken = default)
+        {
+            var appUser = _mapper.Map<AppUser>(appUserDto);
 
             _repositoryManager.AppUserRepository.Insert(appUser);
 
             await _repositoryManager.UnitOfWork.SaveChangesAsync(cancellationToken);
 
-            return _mapper.Map<AppUserReadDto>(appUser);
+            return _mapper.Map<AppUserDto>(appUser);
         }
 
-        public async Task UpdateAsync(string id, AppUserWriteDto appUserWriteDto, CancellationToken cancellationToken = default)
+        public async Task UpdateAsync(string id, AppUserDto appUserDto, CancellationToken cancellationToken = default)
         {
             var appUser = await _repositoryManager.AppUserRepository.GetByIdAsync(id, cancellationToken);
 
@@ -62,7 +76,7 @@ namespace Services
                 throw new AppUserNotFoundException(id);
             }
 
-            _mapper.Map(appUserWriteDto, appUser);
+            _mapper.Map(appUserDto, appUser);
 
             await _repositoryManager.UnitOfWork.SaveChangesAsync(cancellationToken);
         }
