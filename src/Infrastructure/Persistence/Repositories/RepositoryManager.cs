@@ -16,8 +16,6 @@ namespace Persistence.Repositories
         private readonly Lazy<IOrderItemRepository> _lazyOrderItemRepository;
         private readonly Lazy<IOrderRepository> _lazyOrderRepository;
 
-        private readonly Lazy<IOwnerRepository> _lazyOwnerRepository;
-        private readonly Lazy<IAccountRepository> _lazyAccountRepository;
         private readonly Lazy<IUnitOfWork> _lazyUnitOfWork;
 
         public RepositoryManager(RepositoryDbContext dbContext)
@@ -29,8 +27,6 @@ namespace Persistence.Repositories
             _lazyOrderItemRepository = new Lazy<IOrderItemRepository>(() => new OrderItemRepository(dbContext));
             _lazyOrderRepository = new Lazy<IOrderRepository>(() => new OrderRepository(dbContext));
 
-            _lazyOwnerRepository = new Lazy<IOwnerRepository>(() => new OwnerRepository(dbContext));
-            _lazyAccountRepository = new Lazy<IAccountRepository>(() => new AccountRepository(dbContext));
             _lazyUnitOfWork = new Lazy<IUnitOfWork>(() => new UnitOfWork(dbContext));
         }
 
@@ -40,9 +36,6 @@ namespace Persistence.Repositories
         public IItemRepository ItemRepository => _lazyItemRepository.Value;
         public IOrderItemRepository OrderItemRepository => _lazyOrderItemRepository.Value;
         public IOrderRepository OrderRepository => _lazyOrderRepository.Value;
-
-        public IOwnerRepository OwnerRepository => _lazyOwnerRepository.Value;
-        public IAccountRepository AccountRepository => _lazyAccountRepository.Value;
 
         public IUnitOfWork UnitOfWork => _lazyUnitOfWork.Value;
     }

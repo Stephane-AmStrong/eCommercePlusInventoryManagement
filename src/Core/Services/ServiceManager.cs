@@ -18,8 +18,6 @@ namespace Services
         private readonly Lazy<IOrderItemService> _lazyOrderItemService;
         private readonly Lazy<IOrderService> _lazyOrderService;
 
-        private readonly Lazy<IOwnerService> _lazyOwnerService;
-        private readonly Lazy<IAccountService> _lazyAccountService;
 
         public ServiceManager(IRepositoryManager repositoryManager, IMapper mapper)
         {
@@ -29,9 +27,6 @@ namespace Services
             _lazyItemService = new Lazy<IItemService>(() => new ItemService(repositoryManager, mapper));
             _lazyOrderItemService = new Lazy<IOrderItemService>(() => new OrderItemService(repositoryManager, mapper));
             _lazyOrderService = new Lazy<IOrderService>(() => new OrderService(repositoryManager, mapper));
-
-            _lazyOwnerService = new Lazy<IOwnerService>(() => new OwnerService(repositoryManager));
-            _lazyAccountService = new Lazy<IAccountService>(() => new AccountService(repositoryManager));
         }
 
         public IAppUserService AppUserService => _lazyAppUserService.Value;
@@ -40,8 +35,5 @@ namespace Services
         public IItemService ItemService => _lazyItemService.Value;
         public IOrderItemService OrderItemService => _lazyOrderItemService.Value;
         public IOrderService OrderService => _lazyOrderService.Value;
-
-        public IOwnerService OwnerService => _lazyOwnerService.Value;
-        public IAccountService AccountService => _lazyAccountService.Value;
     }
 }

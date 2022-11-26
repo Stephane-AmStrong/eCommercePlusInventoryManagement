@@ -14,8 +14,5 @@ namespace Services.Abstractions
         IItemService ItemService { get; }
         IOrderItemService OrderItemService { get; }
         IOrderService OrderService { get; }
-        IOwnerService OwnerService { get; }
-
-        IAccountService AccountService { get; }
     }
 }

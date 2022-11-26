@@ -1,5 +1,4 @@
-﻿using Contracts;
-using DataTransfertObjects;
+﻿using DataTransfertObjects;
 
 namespace Services.Abstractions
 {

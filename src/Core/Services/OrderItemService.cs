@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using Contracts;
 using DataTransfertObjects;
 using Domain.Entities;
 using Domain.Exceptions;

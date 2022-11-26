@@ -17,10 +17,6 @@ namespace Persistence
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderItem> OrderItems { get; set; }
 
-        public DbSet<Owner> Owners { get; set; }
-
-        public DbSet<Account> Accounts { get; set; }
-
         protected override void OnModelCreating(ModelBuilder modelBuilder) =>
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(RepositoryDbContext).Assembly);
     }

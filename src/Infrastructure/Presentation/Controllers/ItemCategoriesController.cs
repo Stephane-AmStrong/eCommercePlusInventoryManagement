@@ -1,5 +1,4 @@
-﻿using Contracts;
-using DataTransfertObjects;
+﻿using DataTransfertObjects;
 using Microsoft.AspNetCore.Mvc;
 using Presentation.Helpers;
 using Services.Abstractions;

@@ -15,9 +15,6 @@ namespace Domain.Contracts
         IOrderItemRepository OrderItemRepository { get; }
         IOrderRepository OrderRepository { get; }
 
-        IOwnerRepository OwnerRepository { get; }
-        IAccountRepository AccountRepository { get; }
-
         IUnitOfWork UnitOfWork { get; }
     }
 }
